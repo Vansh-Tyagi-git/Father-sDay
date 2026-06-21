@@ -72,12 +72,12 @@ export default function CanvasScroller() {
       width = window.innerWidth;
       height = window.innerHeight;
       devicePixelRatio = window.devicePixelRatio || 1;
-      if (!canvas) return;
+      if (!canvas || !ctx) return;
 
-    canvas.width = Math.floor(width * devicePixelRatio);
-    canvas.height = Math.floor(height * devicePixelRatio);
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
+      canvas.width = Math.floor(width * devicePixelRatio);
+      canvas.height = Math.floor(height * devicePixelRatio);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
       ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
       renderFrame(currentFrame);
     }
@@ -86,6 +86,7 @@ export default function CanvasScroller() {
     let currentFrame = 0;
 
     function getScrollProgress() {
+      if (!container) return 0;
       const rect = container.getBoundingClientRect();
       // how far the container has been scrolled relative to its total scrollable range
       const total = container.clientHeight - window.innerHeight;
@@ -94,6 +95,7 @@ export default function CanvasScroller() {
     }
 
     function renderFrame(frameIndex: number) {
+      if (!ctx || !canvas) return;
       const img = imagesRef.current[frameIndex];
       if (!img) return;
       const iw = img.naturalWidth || img.width;
@@ -146,6 +148,7 @@ export default function CanvasScroller() {
     const container = containerRef.current;
     if (!container) return;
     function onScroll() {
+      if (!container) return;
       const rect = container.getBoundingClientRect();
       const total = container.clientHeight - window.innerHeight;
       const scrolled = Math.min(Math.max(-rect.top, 0), total);
