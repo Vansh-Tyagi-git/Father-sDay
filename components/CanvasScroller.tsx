@@ -2,16 +2,16 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
-const FRAME_COUNT = 151;
+const FRAME_COUNT = 245;
 const FRAME_PATH = '/15fpsframes/';
 const EXT = '.jpg';
 
 const MAPPING = [
   { p: 0, f: 0 },
-  { p: 0.25, f: 37 },
-  { p: 0.5, f: 75 },
-  { p: 0.75, f: 112 },
-  { p: 1, f: 150 },
+  { p: 0.25, f: 61 },
+  { p: 0.5, f: 122 },
+  { p: 0.75, f: 184 },
+  { p: 1, f: 244 },
 ];
 
 function pad(n: number) {
