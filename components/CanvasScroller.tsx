@@ -41,6 +41,7 @@ export default function CanvasScroller() {
   const [loaded, setLoaded] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [isCompactMobile, setIsCompactMobile] = useState(false);
+  const viewportHeightRef = useRef<number>(typeof window !== 'undefined' ? (window.visualViewport?.height || window.innerHeight) : 0);
 
   useEffect(() => {
     // Preload all frames
@@ -86,9 +87,13 @@ export default function CanvasScroller() {
       if (narrow) {
         width = vw;
         height = vh;
+        // keep an authoritative viewport height reference for scroll calculations
+        viewportHeightRef.current = vh;
       } else {
         width = CANVAS_FIXED_WIDTH;
         height = CANVAS_FIXED_HEIGHT;
+        // when using fixed canvas height, still use the visual viewport height for scroll calculations
+        viewportHeightRef.current = vh;
       }
       devicePixelRatio = window.devicePixelRatio || 1;
       if (!canvas || !ctx) return;
@@ -114,7 +119,8 @@ export default function CanvasScroller() {
       if (!container) return 0;
       const rect = container.getBoundingClientRect();
       // how far the container has been scrolled relative to its total scrollable range
-      const total = container.clientHeight - window.innerHeight;
+      const viewportH = viewportHeightRef.current || window.innerHeight;
+      const total = Math.max(0, container.clientHeight - viewportH);
       const scrolled = Math.min(Math.max(-rect.top, 0), total);
       return total <= 0 ? 0 : scrolled / total;
     }
@@ -175,7 +181,8 @@ export default function CanvasScroller() {
     function onScroll() {
       if (!container) return;
       const rect = container.getBoundingClientRect();
-      const total = container.clientHeight - window.innerHeight;
+      const viewportH = viewportHeightRef.current || window.innerHeight;
+      const total = Math.max(0, container.clientHeight - viewportH);
       const scrolled = Math.min(Math.max(-rect.top, 0), total);
       const p = total <= 0 ? 0 : scrolled / total;
       setProgress(p);
