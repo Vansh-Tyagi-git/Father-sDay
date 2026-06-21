@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 const FRAME_COUNT = 245;
 const FRAME_PATH = '/15fpsframes/';
 const EXT = '.jpg';
+const CANVAS_FIXED_WIDTH = 1500; // hard-coded canvas visual width in px
+const CANVAS_FIXED_HEIGHT = 700; // hard-coded canvas visual height in px
 
 const MAPPING = [
   { p: 0, f: 0 },
@@ -74,16 +76,22 @@ export default function CanvasScroller() {
       // Use visualViewport when available to account for mobile browser UI
       const vw = window.visualViewport?.width || window.innerWidth;
       const vh = window.visualViewport?.height || window.innerHeight;
-      width = vw;
-      height = vh;
-      devicePixelRatio = window.devicePixelRatio || 1;
-      if (!canvas || !ctx) return;
-
-      // Detect narrow/mobile viewports and adjust layout
-      const narrow = width <= 420 || (window.navigator && /iphone|android.+mobile/i.test(window.navigator.userAgent));
-      const compact = width <= 400 && height <= 642;
+      // detect viewport for mobile/compact decisions using actual viewport
+      const narrow = vw <= 420 || (window.navigator && /iphone|android.+mobile/i.test(window.navigator.userAgent));
+      const compact = vw <= 400 && vh <= 642;
       setIsMobile(narrow);
       setIsCompactMobile(compact);
+
+      // Use viewport-fit on small devices, otherwise fixed canvas dimensions
+      if (narrow) {
+        width = vw;
+        height = vh;
+      } else {
+        width = CANVAS_FIXED_WIDTH;
+        height = CANVAS_FIXED_HEIGHT;
+      }
+      devicePixelRatio = window.devicePixelRatio || 1;
+      if (!canvas || !ctx) return;
 
       // Dynamically set the scroll container height to maintain consistent mapping
       if (container) {
@@ -182,6 +190,14 @@ export default function CanvasScroller() {
     return Math.max(0, Math.min(1, t));
   }
 
+  // compute overlay fade based on frame progress so we can fade texts out
+  const mappedFrame = mapProgressToFrame(progress);
+  const FADE_START_FRAME = FRAME_COUNT - 10; // start fading over last 10 frames
+  const FADE_RANGE = Math.max(1, (FRAME_COUNT - 1) - FADE_START_FRAME); // 9 for 10 frames
+  const overlayFadeMultiplier = mappedFrame >= FADE_START_FRAME
+    ? Math.max(0, Math.min(1, 1 - (mappedFrame - FADE_START_FRAME) / FADE_RANGE))
+    : 1;
+
   return (
     <div ref={containerRef} style={{ height: '450vh' }} className="relative">
       <canvas
@@ -193,10 +209,13 @@ export default function CanvasScroller() {
       <div
         className={`pointer-events-none fixed inset-0 z-10 flex justify-center ${isCompactMobile ? 'compact-mobile' : (isMobile ? 'mobile-fit' : 'md:items-center items-start')}`}
       >
-          <div className={`${isCompactMobile ? 'max-w-xs' : (isMobile ? 'max-w-xl' : 'max-w-4xl')} text-center px-4`}>
+          <div
+            className={`${isCompactMobile ? 'max-w-xs' : (isMobile ? 'max-w-xl' : 'max-w-4xl')} text-center`}
+            style={{ padding: isMobile ? '8px 12px' : '20px 60px' }}
+          >
 
           <motion.div
-            style={{ opacity: sectionOpacity(0.2, 0.4), translateY: (1 - sectionOpacity(0.2,0.4)) * 20 }}
+            style={{ opacity: sectionOpacity(0.2, 0.4) * overlayFadeMultiplier, translateY: (1 - sectionOpacity(0.2,0.4)) * 20 }}
             className="mt-20"
           >
             <h2 className="text-2xl md:text-3xl font-semibold text-heading">Walking Through Life Together</h2>
@@ -204,7 +223,7 @@ export default function CanvasScroller() {
           </motion.div>
 
           <motion.div
-            style={{ opacity: sectionOpacity(0.4, 0.6), translateY: (1 - sectionOpacity(0.4,0.6)) * 20 }}
+            style={{ opacity: sectionOpacity(0.4, 0.6) * overlayFadeMultiplier, translateY: (1 - sectionOpacity(0.4,0.6)) * 20 }}
             className="mt-20"
           >
             <h2 className="text-2xl md:text-3xl font-semibold text-heading">More Than A Hero</h2>
@@ -212,7 +231,7 @@ export default function CanvasScroller() {
           </motion.div>
 
           <motion.div
-            style={{ opacity: sectionOpacity(0.6, 0.8), translateY: (1 - sectionOpacity(0.6,0.8)) * 20 }}
+            style={{ opacity: sectionOpacity(0.6, 0.8) * overlayFadeMultiplier, translateY: (1 - sectionOpacity(0.6,0.8)) * 20 }}
             className="mt-20"
           >
             <h2 className="text-2xl md:text-3xl font-semibold text-heading">Thank You, Dad</h2>
@@ -220,7 +239,7 @@ export default function CanvasScroller() {
           </motion.div>
 
           <motion.div
-            style={{ opacity: sectionOpacity(0.8, 1), translateY: (1 - sectionOpacity(0.8,1)) * 20 }}
+            style={{ opacity: sectionOpacity(0.8, 1) * overlayFadeMultiplier, translateY: (1 - sectionOpacity(0.8,1)) * 20 }}
             className="mt-20"
           >
             <h2 className="text-2xl md:text-3xl font-semibold text-heading">Happy Father's Day</h2>
