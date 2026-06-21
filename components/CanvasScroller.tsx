@@ -72,10 +72,12 @@ export default function CanvasScroller() {
       width = window.innerWidth;
       height = window.innerHeight;
       devicePixelRatio = window.devicePixelRatio || 1;
-      canvas.width = Math.floor(width * devicePixelRatio);
-      canvas.height = Math.floor(height * devicePixelRatio);
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
+      if (!canvas) return;
+
+    canvas.width = Math.floor(width * devicePixelRatio);
+    canvas.height = Math.floor(height * devicePixelRatio);
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
       ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
       renderFrame(currentFrame);
     }
