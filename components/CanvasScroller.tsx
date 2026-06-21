@@ -50,10 +50,12 @@ export default function CanvasScroller() {
     for (let i = 0; i < FRAME_COUNT; i++) {
       const img = new Image();
       img.src = `${FRAME_PATH}ezgif-frame-${pad(i)}${EXT}`;
-      img.onload = () => {
+      const onLoadOrError = () => {
         if (!mounted) return;
         setLoaded((s) => s + 1);
       };
+      img.onload = onLoadOrError;
+      img.onerror = onLoadOrError;
       imgs.push(img);
     }
     imagesRef.current = imgs;
@@ -205,6 +207,8 @@ export default function CanvasScroller() {
     ? Math.max(0, Math.min(1, 1 - (mappedFrame - FADE_START_FRAME) / FADE_RANGE))
     : 1;
 
+  const isLoaded = loaded >= FRAME_COUNT;
+
   return (
     <div ref={containerRef} style={{ height: '450vh' }} className="relative">
       <canvas
@@ -212,6 +216,30 @@ export default function CanvasScroller() {
         className="fixed inset-0 w-screen h-screen z-0 pointer-events-none"
         style={{ touchAction: 'none' }}
       />
+
+      {!isLoaded && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.8)',
+            color: '#fff',
+            zIndex: 9999,
+            pointerEvents: 'auto',
+          }}
+        >
+          <div style={{ textAlign: 'center', padding: '12px 18px' }}>
+            <p className="text-lg md:text-xl">...Papa ji please wait kr lo na 😊</p>
+            <p className="mt-2 text-sm opacity-80">{Math.min(100, Math.round((loaded / FRAME_COUNT) * 100))}%</p>
+          </div>
+        </div>
+      )}
 
       <div
         className={`pointer-events-none fixed inset-0 z-10 flex justify-center ${isCompactMobile ? 'compact-mobile' : (isMobile ? 'mobile-fit' : 'md:items-center items-start')}`}
