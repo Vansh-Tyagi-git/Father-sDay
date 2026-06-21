@@ -37,6 +37,8 @@ export default function CanvasScroller() {
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const rafRef = useRef<number | null>(null);
   const [loaded, setLoaded] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isCompactMobile, setIsCompactMobile] = useState(false);
 
   useEffect(() => {
     // Preload all frames
@@ -69,10 +71,25 @@ export default function CanvasScroller() {
     let devicePixelRatio = window.devicePixelRatio || 1;
 
     function resize() {
-      width = window.innerWidth;
-      height = window.innerHeight;
+      // Use visualViewport when available to account for mobile browser UI
+      const vw = window.visualViewport?.width || window.innerWidth;
+      const vh = window.visualViewport?.height || window.innerHeight;
+      width = vw;
+      height = vh;
       devicePixelRatio = window.devicePixelRatio || 1;
       if (!canvas || !ctx) return;
+
+      // Detect narrow/mobile viewports and adjust layout
+      const narrow = width <= 420 || (window.navigator && /iphone|android.+mobile/i.test(window.navigator.userAgent));
+      const compact = width <= 400 && height <= 642;
+      setIsMobile(narrow);
+      setIsCompactMobile(compact);
+
+      // Dynamically set the scroll container height to maintain consistent mapping
+      if (container) {
+        const multiplier = compact ? 2.6 : (narrow ? 3.2 : 4.5);
+        container.style.height = `${Math.floor(height * multiplier)}px`;
+      }
 
       canvas.width = Math.floor(width * devicePixelRatio);
       canvas.height = Math.floor(height * devicePixelRatio);
@@ -167,28 +184,22 @@ export default function CanvasScroller() {
 
   return (
     <div ref={containerRef} style={{ height: '450vh' }} className="relative">
-      <canvas ref={canvasRef} className="fixed inset-0 w-screen h-screen z-0" />
+      <canvas
+        ref={canvasRef}
+        className="fixed inset-0 w-screen h-screen z-0 pointer-events-none"
+        style={{ touchAction: 'none' }}
+      />
 
-      <div className="pointer-events-none fixed inset-0 z-10 flex items-center justify-center">
-        <div className="max-w-4xl text-center px-6">
-          <motion.h1
-            style={{ opacity: sectionOpacity(0, 0.2) }}
-            className="text-5xl md:text-6xl font-semibold text-heading leading-tight"
-          >
-            Happy Father's Day
-          </motion.h1>
-          <motion.p
-            style={{ opacity: sectionOpacity(0, 0.2) }}
-            className="mt-4 text-lg text-body max-w-2xl mx-auto"
-          >
-            Every journey becomes meaningful when shared with the ones we love.
-          </motion.p>
+      <div
+        className={`pointer-events-none fixed inset-0 z-10 flex justify-center ${isCompactMobile ? 'compact-mobile' : (isMobile ? 'mobile-fit' : 'md:items-center items-start')}`}
+      >
+          <div className={`${isCompactMobile ? 'max-w-xs' : (isMobile ? 'max-w-xl' : 'max-w-4xl')} text-center px-4`}>
 
           <motion.div
             style={{ opacity: sectionOpacity(0.2, 0.4), translateY: (1 - sectionOpacity(0.2,0.4)) * 20 }}
             className="mt-20"
           >
-            <h2 className="text-3xl font-semibold text-heading">Walking Through Life Together</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold text-heading">Walking Through Life Together</h2>
             <p className="mt-3">Every step creates a memory. Every moment becomes a story.</p>
           </motion.div>
 
@@ -196,7 +207,7 @@ export default function CanvasScroller() {
             style={{ opacity: sectionOpacity(0.4, 0.6), translateY: (1 - sectionOpacity(0.4,0.6)) * 20 }}
             className="mt-20"
           >
-            <h2 className="text-3xl font-semibold text-heading">More Than A Hero</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold text-heading">More Than A Hero</h2>
             <p className="mt-3">A guide. A protector. A teacher. A friend.</p>
           </motion.div>
 
@@ -204,7 +215,7 @@ export default function CanvasScroller() {
             style={{ opacity: sectionOpacity(0.6, 0.8), translateY: (1 - sectionOpacity(0.6,0.8)) * 20 }}
             className="mt-20"
           >
-            <h2 className="text-3xl font-semibold text-heading">Thank You, Dad</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold text-heading">Thank You, Dad</h2>
             <p className="mt-3">For every lesson. For every sacrifice. For every dream you helped build.</p>
           </motion.div>
 
@@ -212,15 +223,13 @@ export default function CanvasScroller() {
             style={{ opacity: sectionOpacity(0.8, 1), translateY: (1 - sectionOpacity(0.8,1)) * 20 }}
             className="mt-20"
           >
-            <h2 className="text-3xl font-semibold text-heading">Happy Father's Day</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold text-heading">Happy Father's Day</h2>
             <p className="mt-3">The greatest gift in life is having someone who always walks beside you.</p>
           </motion.div>
         </div>
       </div>
 
-      <div className="absolute bottom-8 left-0 right-0 z-20 flex justify-center">
-        <div className="bg-white/70 px-4 py-2 rounded-full glass text-sm">{loaded}/{FRAME_COUNT} frames loaded</div>
-      </div>
+      {/* loader removed for clean mobile/hero view */}
     </div>
   );
 }

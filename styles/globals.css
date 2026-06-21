@@ -12,6 +12,13 @@
 
 html,body,#__next{
   height:100%;
+  min-height:100dvh;
+}
+
+/* ensure safe-area on iPhone */
+body{
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 body{
@@ -30,4 +37,37 @@ body{
 .cta {
   background: linear-gradient(90deg, var(--accent) 0%, #6ea57a 100%);
   color: white;
+}
+
+/* Mobile-fit helpers for Canvas overlay */
+.mobile-fit{
+  align-items: flex-start;
+  padding-top: 10vh;
+}
+
+@media (max-width: 420px){
+  .mobile-fit {
+    padding-top: 12vh;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  h1 {
+    font-size: 1.25rem; /* tuned for very small screens */
+  }
+  .drop-shadow-sm{
+    text-shadow: 0 2px 6px rgba(0,0,0,0.28);
+  }
+}
+
+/* Compact mobile (400x642) */
+@media (max-width: 400px) and (max-height: 642px) {
+  .compact-mobile {
+    align-items: flex-start;
+    padding-top: 8vh;
+  }
+  .compact-mobile h1, .compact-mobile .text-2xl {
+    font-size: 1.1rem;
+    line-height: 1.15;
+  }
+  .compact-mobile .mt-20 { margin-top: 2.5rem; }
 }
